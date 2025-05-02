@@ -1,6 +1,7 @@
 import cupy as cp
 import numpy as np
 import sys
+import time
 class NeuralNetMLP:
     def __init__(self, n_hidden:int = 30,
                  l2:float = 0.,
@@ -26,6 +27,7 @@ class NeuralNetMLP:
             "train_acc": [],
             "test_acc": [],
         }
+        self.time = None
         
         
     def sigmoid(self, x):
@@ -57,7 +59,7 @@ class NeuralNetMLP:
     def _compute_cost(self, y_tr, output):
         L2_term = (self.l2 * (np.sum(self.w_h ** 2.) + np.sum(self.w_out ** 2.)))
         term1 = y_tr * (np.log(output+1e-7))
-        term2 = (1. - y_tr) * (np.log(1. - output))
+        term2 = (1. - y_tr) * (np.log(1. - output+1e-7))
         cost = np.sum(term1-term2) + L2_term
         return cost
     
@@ -73,7 +75,7 @@ class NeuralNetMLP:
         y_pred = np.argmax(a_out, axis=1)
         return y_pred
     
-    def fit(self, X_train, y_train, X_test, y_test):
+    def fit(self, X_train, y_train, X_test, y_test, quiet=False):
         
         assert X_train.ndim == 2, f"X_train must be 2D, got {X_train.shape}"
         assert y_train.ndim == 1, f"y_train must be 1D, got {y_train.shape}"
@@ -83,6 +85,7 @@ class NeuralNetMLP:
         # n_output = np.unique(y_train).shape[0]
         n_output = 11
         n_features = X_train.shape[1]
+        start_time = time.time()  
         
         
         scale_h = np.sqrt(2 / (n_features + self.n_hidden))
@@ -129,9 +132,12 @@ class NeuralNetMLP:
             self.cost.append(cost)
             self.eval_['train_acc'].append(train_acc)
             self.eval_['test_acc'].append(test_acc)
+            if quiet:
+                continue
             sys.stderr.write(f"\rEpoch {epoch+1}/{self.epochs} | Cost: {cost:.2f} | Train/Test Acc.: {train_acc*100:.2f}%/{test_acc*100:.2f}%")
 
             sys.stderr.flush()
             
-            
+        self.time = time.time() - start_time
+        print(f"\nTotal training time: {self.time:.2f} seconds")
         return self

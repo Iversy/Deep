@@ -1,5 +1,6 @@
 import cupy as cp
 import sys
+import time
 
 class NeuralNetMLP_CP:
     def __init__(self, n_hidden:int = 30,
@@ -46,6 +47,11 @@ class NeuralNetMLP_CP:
         a_out = self.softmax(z_out)
         return z_h, a_h, z_out, a_out
 
+    def predict(self, X):
+        z_h, a_h, z_out, a_out = self._forward(X)
+        return cp.argmax(a_out, axis=1)
+    
+
     def _compute_cost(self, y_tr, output):
         L2_term = (self.l2 * (cp.sum(self.w_h ** 2.) + cp.sum(self.w_out ** 2.)))
         term1 = y_tr * (cp.log(output+1e-7))
@@ -53,11 +59,8 @@ class NeuralNetMLP_CP:
         cost = cp.sum(term1-term2) + L2_term
         return cost
     
-    def predict(self, X):
-        z_h, a_h, z_out, a_out = self._forward(X)
-        return cp.argmax(a_out, axis=1)
     
-    def fit(self, X_train, y_train, X_test, y_test):
+    def fit(self, X_train, y_train, X_test, y_test, quiet=False):
         # Ensure inputs are CuPy arrays (no conversion back to NumPy)
         X_train = cp.asarray(X_train)
         y_train = cp.asarray(y_train)
@@ -67,6 +70,7 @@ class NeuralNetMLP_CP:
         assert X_train.ndim == 2, f"X_train must be 2D, got {X_train.shape}"
         assert y_train.ndim == 1, f"y_train must be 1D, got {y_train.shape}"
         
+        start_time = time.time()  
         if self.minibatch_size <= 0:
             self.minibatch_size = X_train.shape[0]
         
@@ -121,7 +125,8 @@ class NeuralNetMLP_CP:
             self.cost.append(float(cost))
             self.eval_['train_acc'].append(float(train_acc))
             self.eval_['test_acc'].append(float(test_acc))
-            
+            if quiet:
+                continue
             sys.stderr.write(
                 f"\rEpoch {epoch+1}/{self.epochs} | "
                 f"Cost: {float(cost):.2f} | "
@@ -129,4 +134,6 @@ class NeuralNetMLP_CP:
             )
             sys.stderr.flush()
             
+        self.time = time.time() - start_time
+        print(f"\nTotal training time: {self.time:.2f} seconds")
         return self
