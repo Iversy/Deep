@@ -7,12 +7,13 @@ requires-python = ">=3.12"
 dependencies = [
     "ipykernel>=6.29.5",
     "matplotlib>=3.10.1",
-    "numpy>=2.2.4",
+    "numpy>=2.2.5",
     "pandas>=2.2.3",
     "scikit-learn>=1.6.1",
     "seaborn>=0.13.2",
     "tqdm>=4.67.1",
-    "torchvision==0.21.0+cpu",
-    "torch==2.6.0+cpu",
-    "torchaudio==2.6.0+cpu",
+    "torchvision==0.22.0",
+    "torch==2.7.0",
+    "torchaudio==2.7.0",
+    "cupy-cuda12x>=13.4.1",
 ]
