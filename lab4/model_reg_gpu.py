@@ -49,7 +49,7 @@ class NeuralNetMLP_Regressor:
     
     def fit(self, X_train, y_train, X_val=None, y_val=None, quiet=False):
         X_train = cp.asarray(X_train)
-        y_train = cp.asarray(y_train).reshape(-1, 1).ravel()  # Регрессия - выход 1D
+        y_train = cp.asarray(y_train).reshape(-1, 1)
         
         if X_val is not None:
             X_val = cp.asarray(X_val)
@@ -59,7 +59,7 @@ class NeuralNetMLP_Regressor:
         
         if self.minibatch_size <= 0:
             self.minibatch_size = X_train.shape[0]
-        
+        print(self.minibatch_size)
         n_features = X_train.shape[1]
         n_output = 1  # Для регрессии один выход
         
@@ -89,8 +89,11 @@ class NeuralNetMLP_Regressor:
                 z_h, a_h, z_out = self._forward(X_batch)
                 
                 # Backpropagation
-                delta_out = z_out - y_batch  # Производная MSE
+                delta_out = (z_out - y_batch)# / y_batch.shape[0]
                 sigmoid_der_h = a_h * (1. - a_h)
+                # print(delta_out.shape)
+                # print(sigmoid_der_h.shape)
+                # print(self.w_out.T.shape)
                 delta_h = (cp.dot(delta_out, self.w_out.T) * sigmoid_der_h)
                 
                 # Weight updates
