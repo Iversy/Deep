@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from pydantic import BaseModel
+from torch import Tensor
 from torch.utils.data import Dataset
 from torchvision.io import ImageReadMode, read_image, decode_image
 
@@ -27,7 +28,7 @@ class MyDataset(Dataset):
     def __len__(self):
         return len(self.images)
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> tuple[Tensor, int]:
         image = self.images[idx]
         label = image.label
         tensor = decode_image(image.path, ImageReadMode.RGB)
